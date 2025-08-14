@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "21491793885",
+    "firebase_url": "https://wesafe-d0090-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "wesafe-d0090",
+    "storage_bucket": "wesafe-d0090.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:21491793885:android:f4f529e05c6d0f2782c034",
+        "android_client_info": {
+          "package_name": "com.example.WESAFE"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGnX9e4pDEB5UILMQ_M6p8Ut51PqxnuBk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:21491793885:android:c89e8051f5cfeed482c034",
+        "android_client_info": {
+          "package_name": "com.example.login_v3_nextgen"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGnX9e4pDEB5UILMQ_M6p8Ut51PqxnuBk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
