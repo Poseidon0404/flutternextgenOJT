@@ -725,10 +725,11 @@ class _Homev3ScreenState extends State<Homev3Screen> {
               children: [
                 Expanded(
                   child: Center(
-                    child: Icon(
-                      action['icon'],
-                      size: 32,
-                      color: Colors.white,
+                    child: Image.asset(
+                      action['image'],
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),

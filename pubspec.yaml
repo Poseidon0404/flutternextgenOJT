@@ -78,6 +78,15 @@ flutter:
     - assets/images/exit.png
     - assets/images/account.png
     - assets/images/logobot.png
+    - assets/logos/take.png
+    - assets/logos/return.png
+    - assets/logos/inventory.png
+    - assets/logos/stock.png
+    - assets/logos/load.png
+    - assets/logos/config.png
+    - assets/logos/Vector.png
+    - assets/logos/reclaim.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
