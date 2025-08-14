@@ -653,15 +653,51 @@ class _Homev3ScreenState extends State<Homev3Screen> {
 
   Widget _buildActionGrid() {
     final List<Map<String, dynamic>> actions = [
-      {'label': 'TAKE', 'icon': Icons.download, 'onTap': () => print('Take action')},
-      {'label': 'RETURN', 'icon': Icons.upload, 'onTap': () => print('Return action')},
-      {'label': 'INVENTORY', 'icon': Icons.inventory, 'onTap': () => print('Inventory action')},
-      {'label': 'STOCK', 'icon': Icons.store, 'onTap': () => print('Stock action')},
-      {'label': 'ORDER', 'icon': Icons.shopping_cart, 'onTap': () => print('Order action')},
-      {'label': 'RECLAIM', 'icon': Icons.restore, 'onTap': () => print('Reclaim action')},
-      {'label': 'LOAD', 'icon': Icons.cloud_upload, 'onTap': () => print('Load action')},
-      {'label': 'UNLOAD', 'icon': Icons.cloud_download, 'onTap': () => print('Unload action')},
-      {'label': 'SEARCH', 'icon': Icons.search, 'onTap': () => print('Search action')},
+      {
+        'label': 'TAKE',
+        'image': 'assets/logos/take.png',
+        'onTap': () => print('Take action')
+      },
+      {
+        'label': 'RETURN',
+        'image': 'assets/logos/return.png',
+        'onTap': () => print('Return action')
+      },
+      {
+        'label': 'INVENTORY',
+        'image': 'assets/logos/inventory.png',
+        'onTap': () => print('Inventory action')
+      },
+      {
+        'label': 'STOCK',
+        'image': 'assets/logos/stock.png',
+        'onTap': () => print('Stock action')
+      },
+      {
+        'label': 'ORDER',
+        'image': 'assets/logos/config.png', //no logo yet
+        'onTap': () => print('Order action')
+      },
+      {
+        'label': 'RECLAIM',
+        'image': 'assets/logos/reclaim.png',
+        'onTap': () => print('Reclaim action')
+      },
+      {
+        'label': 'LOAD',
+        'image': 'assets/logos/load.png',
+        'onTap': () => print('Load action')
+      },
+      {
+        'label': 'UNLOAD',
+        'image': 'assets/logos/Vector.png', //no logo yet
+        'onTap': () => print('Unload action')
+      },
+      {
+        'label': 'SEARCH',
+        'image': 'assets/logos/config.png',
+        'onTap': () => print('Search action')
+      },
     ];
 
     return GridView.builder(
