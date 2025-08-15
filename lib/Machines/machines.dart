@@ -576,6 +576,9 @@ class _MachineScreenState extends State<MachineScreen> {
               case 'home':
                 Navigator.push(context, MaterialPageRoute(builder: (_) => Homev3Screen(username: widget.username)));
                 break;
+              case 'users': // both open the same Manage Roles UI
+                _allUsers();
+                break;
               case 'force_sync':
                 _showSyncDialog();
                 break;
