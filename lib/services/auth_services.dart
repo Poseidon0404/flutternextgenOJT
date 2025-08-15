@@ -228,7 +228,6 @@ class AuthService {
     await prefs.remove('role'); // ✅ Remove role
   }
 
-  // 🔍 ERROR PARSER
   String _extractErrorMessage(String body) {
     try {
       final json = jsonDecode(body);
