@@ -632,6 +632,7 @@ class _MachineScreenState extends State<MachineScreen> {
           },
           itemBuilder: (context) => [
             _buildMenuItem(Icons.home, 'Home', 'home'),
+            _buildMenuItem(Icons.supervised_user_circle, 'Users', 'users'),
             _buildMenuItem(Icons.sync, 'Force Sync', 'force_sync'),
             _buildMenuItem(Icons.storage, 'Initialize DB', 'initialize_db'),
             _buildMenuItem(Icons.info, 'About', 'about'),
