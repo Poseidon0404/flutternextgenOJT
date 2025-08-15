@@ -204,7 +204,6 @@ class AuthService {
     await prefs.setString('username', username);
   }
 
-  // 🧠 GET SAVED USERNAME
   Future<String?> getLoggedInUsername() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('username');
