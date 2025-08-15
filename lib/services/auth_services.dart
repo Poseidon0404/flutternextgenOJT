@@ -147,6 +147,28 @@ class AuthService {
   }
 
 
+  Future<bool> assignRole(String username, String role) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/assign-role'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'username': username,
+          'role': role,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        lastError = 'Failed to assign role: ${response.statusCode} - ${response.body}';
+        return false;
+      }
+    } catch (e) {
+      lastError = 'Error assigning role: $e';
+      return false;
+    }
+  }
 
   // 🧠 TOKEN ACCESS
   Future<String?> getToken() async {
