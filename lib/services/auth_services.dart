@@ -126,6 +126,7 @@ class AuthService {
     }
   }
 
+  // 📲 SAVE FCM TOKEN
   Future<void> saveUserToken(String jwtToken, String? fcmToken) async {
     if (fcmToken == null || jwtToken.isEmpty) return;
 
