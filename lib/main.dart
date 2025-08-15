@@ -218,6 +218,7 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+
   void _showEmailNotConfirmedDialog(String username) {
     showDialog(
       context: context,
