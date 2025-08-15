@@ -41,6 +41,126 @@ class _MachineScreenState extends State<MachineScreen> {
     });
   }
 
+  void _allUsers() async {
+    try {
+      final users = await _authService.getAllUsers(); // Your AuthService method
+      setState(() => _users = users);
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            insetPadding: const EdgeInsets.all(20),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Manage Roles',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: _users.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final user = _users[index];
+                        final username = user['username'];
+                        final roles = List<String>.from(user['roles']);
+
+                        return Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.blueAccent,
+                              child: Text(
+                                username[0].toUpperCase(),
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            title: Text(
+                              username,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            subtitle: Wrap(
+                              spacing: 6,
+                              children: roles.map((role) {
+                                final isAdmin = role.toLowerCase() == 'admin';
+                                return Chip(
+                                  label: Text(role),
+                                  backgroundColor: isAdmin ? Colors.red[100] : Colors.green[100],
+                                  labelStyle: TextStyle(
+                                    color: isAdmin ? Colors.red[800] : Colors.green[800],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            trailing: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: null,
+                                hint: const Text('Assign Role'),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    _assignRole(username, value);
+                                  }
+                                },
+                                items: ['Admin', 'User']
+                                    .map((role) => DropdownMenuItem(
+                                  value: role,
+                                  child: Text(role),
+                                ))
+                                    .toList(),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                      label: const Text('Close'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Error loading users: $e');
+    }
+  }
+
+
+  void _assignRole(String username, String role) async {
+    try {
+      await _authService.assignRole(username, role); // AuthService call
+      Navigator.pop(context); // Close dialog
+      _allUsers(); // Refresh list after assigning
+    } catch (e) {
+      debugPrint('Error assigning role: $e');
+    }
+  }
+
+
+
   void _showSyncDialog() async {
     showDialog(
       context: context,
