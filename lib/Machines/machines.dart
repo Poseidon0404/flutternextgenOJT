@@ -7,6 +7,7 @@ import 'package:login_v3_nextgen/Machines/D-LOCK/D-Scale.dart';
 import 'package:login_v3_nextgen/accounts/dialog.dart';
 import 'package:login_v3_nextgen/accounts/softwareupdate.dart';
 import 'package:login_v3_nextgen/main.dart';
+import 'package:login_v3_nextgen/services/auth_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MachineScreen extends StatefulWidget {
