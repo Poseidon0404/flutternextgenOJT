@@ -179,12 +179,23 @@ class _AuthScreenState extends State<AuthScreen> {
         await Future.delayed(const Duration(seconds: 2));
         if (!mounted) return;
         Navigator.of(context).pop();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MachineScreen(username: username),
-          ),
-        );
+
+        final roles = List<String>.from(loginResult['roles'] ?? [])
+            .map((r) => r.trim().toLowerCase())
+            .toList();
+
+        if (roles.contains('admin')) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => MachineScreen(username: username)),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => ManageUsersPage(username: username)),
+          );
+        }
+
       } else {
         setState(() => _error =
             _authService.lastError ?? 'Incorrect username or password.');
