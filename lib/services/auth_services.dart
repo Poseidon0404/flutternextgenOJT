@@ -6,9 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   final _storage = const FlutterSecureStorage();
   final String baseUrl = 'http://10.0.2.2:5294/api/authenticate'; // Your local API
-  String? lastError; // Store error message
+  String? lastError;
 
-  Future<String?> login(String username, String password) async {
+  Future<Map<String, dynamic>?> login(String username, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
@@ -20,31 +20,30 @@ class AuthService {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
+        final jsonResponse = jsonDecode(response.body);
 
-        if (json['IsEmailConfirmed'] == false) {
-          return 'emailNotConfirmed';
+        // Check email confirmation
+        if (jsonResponse['IsEmailConfirmed'] == false) {
+          return {'error': 'emailNotConfirmed'};
         }
 
-        final token = json['token'];
-        await _storage.write(key: 'jwt_token', value: token);
+        // Save token
+        if (jsonResponse.containsKey('token')) {
+          await _storage.write(key: 'jwt_token', value: jsonResponse['token']);
+        }
+
+        // Save username
         await _saveUsername(username);
-        return token;
+
+        return jsonResponse;
       } else {
-        final responseBody = response.body.trim();
-
-        if (responseBody.contains('Email not verified')) {
-          return 'emailNotConfirmed'; // match in main.dart
-        }
-
-        // Try to decode in case it's valid JSON
+        // Parse error
         try {
-          final errorJson = jsonDecode(responseBody);
+          final errorJson = jsonDecode(response.body);
           lastError = errorJson['message'] ?? 'Login failed. Please try again.';
-        } catch (e) {
-          lastError = responseBody; // raw message from server
+        } catch (_) {
+          lastError = response.body;
         }
-
         return null;
       }
     } catch (e) {
@@ -198,7 +197,6 @@ class AuthService {
     return await _storage.read(key: 'jwt_token');
   }
 
-  // 🧠 SAVE USERNAME LOCALLY
   Future<void> _saveUsername(String username) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);

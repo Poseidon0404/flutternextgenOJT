@@ -1,41 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:login_v3_nextgen/Machines/A-VIM/virtualmachine/storeroom1.dart';
-import 'package:login_v3_nextgen/Machines/A-VIM/virtualmachine/storeroom3.dart';
 import 'package:intl/intl.dart';
-import 'package:login_v3_nextgen/main.dart';
+import 'package:login_v3_nextgen/Machines/A-VIM/virtualmachine/Homev3.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'main.dart'; // for isAdmin()
 
-class Homev3Screen extends StatefulWidget {
+class AdminPage extends StatefulWidget {
   final String username;
 
-  const Homev3Screen({Key? key, required this.username}) : super(key: key);
+  const AdminPage({Key? key, required this.username}) : super(key: key);
 
   @override
-  _Homev3ScreenState createState() => _Homev3ScreenState();
+  State<AdminPage> createState() => _AdminPageState();
 }
 
-class _Homev3ScreenState extends State<Homev3Screen> {
+class _AdminPageState extends State<AdminPage> {
+  String appVersion = "v.4.1.78.6"; // Example version
+
   String getUsaGmtMinus4DateTime() {
     final nowUtc = DateTime.now().toUtc();
-    final gmtMinus4 = nowUtc.subtract(Duration(hours: 4));
+    final gmtMinus4 = nowUtc.subtract(const Duration(hours: 4));
     return DateFormat('yyyy/MM/dd hh:mm a').format(gmtMinus4);
-  }
-
-  String appVersion = 'v.4.1.78.6';
-  @override
-  void initState() {
-    super.initState();
-    _loadVersion();
-  }
-
-  Future<void> _loadVersion() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedVersion = prefs.getString('app_version');
-
-    setState(() {
-      appVersion = storedVersion ?? appVersion;
-    });
   }
 
   void _showSyncDialog() async {
@@ -248,8 +233,9 @@ class _Homev3ScreenState extends State<Homev3Screen> {
     );
   }
 
+
   void _showUpdate(BuildContext context) {
-    final String appVersion = 'v.4.1.78.20'; // new version
+    final String appVersion = 'v.4.1.78.21'; // new version
 
     String getUsaGmtMinus4DateTime() {
       final nowUtc = DateTime.now().toUtc();
@@ -339,8 +325,6 @@ class _Homev3ScreenState extends State<Homev3Screen> {
                     ),
 
                     const SizedBox(height: 20),
-
-                    // Buttons
                     Row(
                       children: [
                         Expanded(
@@ -422,23 +406,10 @@ class _Homev3ScreenState extends State<Homev3Screen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFF2e2e2e),
-      appBar: _buildHeader(),
-      body: Stack(
-        children: [
-          _buildBackground(),
-          _buildForegroundContent(),
-        ],
-      ),
-      bottomNavigationBar: _buildFooter(),
-    );
-  }
-
+  // HEADER
   PreferredSizeWidget _buildHeader() {
     return AppBar(
+      automaticallyImplyLeading: false,
       backgroundColor: const Color(0xFFc40000),
       title: Row(
         children: [
@@ -559,7 +530,34 @@ class _Homev3ScreenState extends State<Homev3Screen> {
     );
   }
 
-  Widget _buildBackground() {
+  Widget _buildFooter() {
+    return Container(
+      height: 30,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFa50000), Color(0xFFc40000)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 10),
+          Image.asset('assets/images/logobot.png', height: 20),
+          const SizedBox(width: 10),
+          Text(appVersion, style: const TextStyle(color: Colors.white, fontSize: 12)),
+          const Spacer(),
+          Text(
+            getUsaGmtMinus4DateTime(),
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+          const SizedBox(width: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
     return Stack(
       children: [
         Image.asset(
@@ -587,7 +585,7 @@ class _Homev3ScreenState extends State<Homev3Screen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 5, child: _buildStoreroomList()),
+          Expanded(flex: 5, child: _buildUser()),
           SizedBox(width: 25),
           Expanded(flex: 9, child: _buildActionGrid()),
         ],
@@ -595,56 +593,12 @@ class _Homev3ScreenState extends State<Homev3Screen> {
     );
   }
 
-  Widget _buildStoreroomList() {
+  Widget _buildUser() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Storeroom', style: TextStyle(fontSize: 20, color: Colors.white)),
+        Text('Admin', style: TextStyle(fontSize: 20, color: Colors.white)),
         SizedBox(height: 20),
-        Expanded(
-          child: ListView.builder(
-            itemCount: 7,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (index == 2) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Storeroom3Screen(username: widget.username),
-                        ),
-                      );
-                    }
-                    else if (index == 0) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => InventoryScreen(username: widget.username),
-                        ),
-                      );
-                    } else {
-                      print('Storeroom ${index + 1} pressed');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[700],
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  ),
-                  child: Text(
-                    'Storeroom ${index + 1}',
-                    style: GoogleFonts.notoSans(
-                      fontSize: 10,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
       ],
     );
   }
@@ -660,41 +614,6 @@ class _Homev3ScreenState extends State<Homev3Screen> {
         'label': 'RETURN',
         'image': 'assets/logos/return.png',
         'onTap': () => print('Return action')
-      },
-      {
-        'label': 'INVENTORY',
-        'image': 'assets/logos/inventory.png',
-        'onTap': () => print('Inventory action')
-      },
-      {
-        'label': 'STOCK',
-        'image': 'assets/logos/stock.png',
-        'onTap': () => print('Stock action')
-      },
-      {
-        'label': 'ORDER',
-        'image': 'assets/logos/config.png', //no logo yet
-        'onTap': () => print('Order action')
-      },
-      {
-        'label': 'RECLAIM',
-        'image': 'assets/logos/reclaim.png',
-        'onTap': () => print('Reclaim action')
-      },
-      {
-        'label': 'LOAD',
-        'image': 'assets/logos/load.png',
-        'onTap': () => print('Load action')
-      },
-      {
-        'label': 'UNLOAD',
-        'image': 'assets/logos/Vector.png', //no logo yet
-        'onTap': () => print('Unload action')
-      },
-      {
-        'label': 'SEARCH',
-        'image': 'assets/logos/config.png',
-        'onTap': () => print('Search action')
       },
     ];
 
@@ -748,33 +667,18 @@ class _Homev3ScreenState extends State<Homev3Screen> {
     );
   }
 
-  Widget _buildFooter() {
-    return Container(
-      height: 30,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFa50000), Color(0xFFc40000)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-      child: Row(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF2C2F34),
+      appBar: _buildHeader(),
+      body: Stack(
         children: [
-          SizedBox(width: 10),
-          Image.asset('assets/images/logobot.png', height: 20),
-          SizedBox(width: 10),
-          Text(
-            appVersion,
-            style: TextStyle(color: Colors.white, fontSize: 12),
-          ),
-          Spacer(),
-          Text(
-            getUsaGmtMinus4DateTime(),
-            style: TextStyle(color: Colors.white, fontSize: 12),
-          ),
-          SizedBox(width: 10),
+          _buildBody(),
+          _buildForegroundContent(),
         ],
       ),
+      bottomNavigationBar: _buildFooter(),
     );
   }
 }

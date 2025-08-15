@@ -18,6 +18,8 @@ class MachineScreen extends StatefulWidget {
 }
 
 class _MachineScreenState extends State<MachineScreen> {
+  final AuthService _authService = AuthService();
+  List<Map<String, dynamic>> _users = [];
   String appVersion = 'v.4.1.78.6'; // default version
 
   String getUsaGmtMinus4DateTime() {

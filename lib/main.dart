@@ -16,7 +16,6 @@ import 'manage_users_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
   await Firebase.initializeApp(
     options: Platform.isAndroid
         ? const FirebaseOptions(
@@ -86,7 +85,13 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Loading overlay widget
+// ⭐ NEW: Role check helper
+Future<bool> isAdmin() async {
+  final prefs = await SharedPreferences.getInstance();
+  final roles = prefs.getStringList('roles') ?? [];
+  return roles.contains('Admin');
+}
+
 class LoadingScreen extends StatelessWidget {
   final String message;
   const LoadingScreen({super.key, this.message = 'Please wait...'});
@@ -113,7 +118,6 @@ class LoadingScreen extends StatelessWidget {
   }
 }
 
-// Authentication Screen
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
   @override
