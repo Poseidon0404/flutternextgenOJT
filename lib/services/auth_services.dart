@@ -146,6 +146,30 @@ class AuthService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/all-user-roles'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data
+            .map((e) => {
+          'username': e['username'],
+          'roles': e['roles'],
+        })
+            .toList();
+      } else {
+        lastError = 'Failed to fetch users: ${response.statusCode}';
+        return [];
+      }
+    } catch (e) {
+      lastError = 'Error fetching users: $e';
+      return [];
+    }
+  }
 
   Future<bool> assignRole(String username, String role) async {
     try {
