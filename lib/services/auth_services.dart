@@ -135,7 +135,7 @@ class AuthService {
         Uri.parse('$baseUrl/save-fcm-token'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $jwtToken', // JWT authentication
+          'Authorization': 'Bearer $jwtToken',
         },
         body: jsonEncode({'fcmToken': fcmToken}),
       );
