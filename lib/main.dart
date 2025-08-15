@@ -11,7 +11,6 @@ import 'package:login_v3_nextgen/services/auth_services.dart';
 import 'package:login_v3_nextgen/Machines/machines.dart';
 import 'package:login_v3_nextgen/login/VerifyEmailScreen.dart';
 import 'package:login_v3_nextgen/login/RequestPasswordResetScreen.dart';
-import 'admin_page.dart';
 import 'manage_users_page.dart';
 
 Future<void> main() async {
