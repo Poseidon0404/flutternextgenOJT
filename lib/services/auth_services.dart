@@ -211,7 +211,18 @@ class AuthService {
     return prefs.getString('username');
   }
 
-  // 🧽 LOGOUT
+  Future<void> _saveUserRole(String? role) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (role != null) {
+      await prefs.setString('role', role);
+    }
+  }
+
+  Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('role');
+  }
+
   Future<void> logout() async {
     await _storage.delete(key: 'jwt_token');
     final prefs = await SharedPreferences.getInstance();
