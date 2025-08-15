@@ -225,6 +225,7 @@ class AuthService {
     await _storage.delete(key: 'jwt_token');
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
+    await prefs.remove('role'); // ✅ Remove role
   }
 
   // 🔍 ERROR PARSER
