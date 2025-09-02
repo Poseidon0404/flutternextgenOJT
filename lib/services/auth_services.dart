@@ -170,6 +170,25 @@ class AuthService {
     }
   }
 
+  Future<bool> updateBiometricType(String username, String biometricType) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/update-biometric'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'biometricType': biometricType,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      lastError = 'Error updating biometric: $e';
+      return false;
+    }
+  }
+
+
   Future<bool> assignRole(String username, String role) async {
     try {
       final response = await http.post(
