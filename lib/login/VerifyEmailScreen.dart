@@ -177,7 +177,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
             Builder(
               builder: (context) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Future.delayed(const Duration(seconds: 1), () {
+                  Future.delayed(const Duration(seconds: 2), () {
                     Navigator.pop(context);
                   });
                 });

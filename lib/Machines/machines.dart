@@ -22,6 +22,8 @@ class _MachineScreenState extends State<MachineScreen> {
   List<Map<String, dynamic>> _users = [];
   String appVersion = 'v.4.1.78.6'; // default version
 
+  String _searchQuery = "";
+
   String getUsaGmtMinus4DateTime() {
     final nowUtc = DateTime.now().toUtc();
     final gmtMinus4 = nowUtc.subtract(const Duration(hours: 4));
@@ -45,83 +47,145 @@ class _MachineScreenState extends State<MachineScreen> {
 
   void _allUsers() async {
     try {
-      final users = await _authService.getAllUsers(); // Your AuthService method
+      final users = await _authService.getAllUsers();
       setState(() => _users = users);
 
       showDialog(
         context: context,
         builder: (context) {
           return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             insetPadding: const EdgeInsets.all(20),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  colors: [Colors.white, Colors.blue[50]!],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Manage Roles',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Manage Roles',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close, color: Colors.black54),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  Expanded(
-                    child: ListView.separated(
+                  SizedBox(
+                    height: 400,
+                    child: _users.isEmpty
+                        ? const Center(
+                      child: Text(
+                        "No users found",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                        : ListView.separated(
                       itemCount: _users.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final user = _users[index];
                         final username = user['username'];
                         final roles = List<String>.from(user['roles']);
 
                         return Card(
-                          elevation: 2,
+                          elevation: 4,
+                          shadowColor: Colors.blue[100],
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             leading: CircleAvatar(
+                              radius: 24,
                               backgroundColor: Colors.blueAccent,
                               child: Text(
                                 username[0].toUpperCase(),
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
                               ),
                             ),
                             title: Text(
                               username,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
                             ),
-                            subtitle: Wrap(
-                              spacing: 6,
-                              children: roles.map((role) {
-                                final isAdmin = role.toLowerCase() == 'admin';
-                                return Chip(
-                                  label: Text(role),
-                                  backgroundColor: isAdmin ? Colors.red[100] : Colors.green[100],
-                                  labelStyle: TextStyle(
-                                    color: isAdmin ? Colors.red[800] : Colors.green[800],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                );
-                              }).toList(),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: roles.map((role) {
+                                  final isAdmin = role.toLowerCase() == 'admin';
+                                  return Chip(
+                                    avatar: Icon(
+                                      isAdmin ? Icons.shield : Icons.person,
+                                      size: 16,
+                                      color: isAdmin ? Colors.red[700] : Colors.green[700],
+                                    ),
+                                    label: Text(role),
+                                    backgroundColor: isAdmin ? Colors.red[50] : Colors.green[50],
+                                    labelStyle: TextStyle(
+                                      color: isAdmin ? Colors.red[800] : Colors.green[800],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
                             ),
                             trailing: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
                                 value: null,
                                 hint: const Text('Assign Role'),
+                                icon: const Icon(Icons.arrow_drop_down, color: Colors.blueAccent),
                                 onChanged: (value) {
                                   if (value != null) {
                                     _assignRole(username, value);
                                   }
                                 },
                                 items: ['Admin', 'User']
-                                    .map((role) => DropdownMenuItem(
-                                  value: role,
-                                  child: Text(role),
-                                ))
+                                    .map(
+                                      (role) => DropdownMenuItem(
+                                    value: role,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          role == "Admin" ? Icons.shield : Icons.person,
+                                          size: 18,
+                                          color: role == "Admin"
+                                              ? Colors.redAccent
+                                              : Colors.green,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(role),
+                                      ],
+                                    ),
+                                  ),
+                                )
                                     .toList(),
                               ),
                             ),
@@ -130,13 +194,22 @@ class _MachineScreenState extends State<MachineScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close),
                       label: const Text('Close'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 3,
+                      ),
                     ),
                   ),
                 ],
@@ -151,6 +224,7 @@ class _MachineScreenState extends State<MachineScreen> {
   }
 
 
+
   void _assignRole(String username, String role) async {
     try {
       await _authService.assignRole(username, role); // AuthService call
@@ -160,8 +234,6 @@ class _MachineScreenState extends State<MachineScreen> {
       debugPrint('Error assigning role: $e');
     }
   }
-
-
 
   void _showSyncDialog() async {
     showDialog(
@@ -552,6 +624,7 @@ class _MachineScreenState extends State<MachineScreen> {
   // HEADER
   PreferredSizeWidget _buildHeader() {
     return AppBar(
+      automaticallyImplyLeading: false,
       backgroundColor: const Color(0xFFc40000),
       title: Row(
         children: [
@@ -575,10 +648,7 @@ class _MachineScreenState extends State<MachineScreen> {
           offset: const Offset(0, 50),
           onSelected: (value) async {
             switch (value) {
-              case 'home':
-                Navigator.push(context, MaterialPageRoute(builder: (_) => Homev3Screen(username: widget.username)));
-                break;
-              case 'users': // both open the same Manage Roles UI
+              case 'users':
                 _allUsers();
                 break;
               case 'force_sync':
@@ -633,7 +703,6 @@ class _MachineScreenState extends State<MachineScreen> {
             }
           },
           itemBuilder: (context) => [
-            _buildMenuItem(Icons.home, 'Home', 'home'),
             _buildMenuItem(Icons.supervised_user_circle, 'Users', 'users'),
             _buildMenuItem(Icons.sync, 'Force Sync', 'force_sync'),
             _buildMenuItem(Icons.storage, 'Initialize DB', 'initialize_db'),
@@ -693,7 +762,6 @@ class _MachineScreenState extends State<MachineScreen> {
               const SizedBox(height: 30),
               _buildMachineOptions(),
               const Spacer(),
-              const Text("SKIP", style: TextStyle(color: Colors.white70, fontSize: 16)),
               const SizedBox(height: 20),
               _buildFooter(),
             ],
@@ -729,6 +797,7 @@ class _MachineScreenState extends State<MachineScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       height: 60,
+      width: 750,
       decoration: BoxDecoration(
         color: Colors.blue[800],
         borderRadius: BorderRadius.circular(8),
@@ -761,115 +830,109 @@ class _MachineScreenState extends State<MachineScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.symmetric(horizontal: 15),
       height: 50,
-      color: Colors.grey[300],
-      alignment: Alignment.centerLeft,
-      child: const Text(
-        "SEARCH HERE",
-        style: TextStyle(color: Colors.grey, fontSize: 16),
+      width: 750,
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: TextField(
+        onChanged: (value) {
+          setState(() => _searchQuery = value.toLowerCase());
+        },
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          hintText: "SEARCH HERE",
+          hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+          icon: Icon(Icons.search, color: Colors.grey),
+        ),
       ),
     );
   }
 
   Widget _buildMachineOptions() {
+    final filteredMachines = _machines.where((machine) {
+      return machine["keyword"].toLowerCase().contains(_searchQuery);
+    }).toList();
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildMachineTile(
-                icon: Icons.storage,
-                title: "A-VIM",
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => Homev3Screen(username: widget.username)),
-                ),
+          for (int i = 0; i < filteredMachines.length; i += 2)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildMachineImage(
+                    imagePath: filteredMachines[i]["image"],
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            filteredMachines[i]["screen"](widget.username),
+                      ),
+                    ),
+                  ),
+                  if (i + 1 < filteredMachines.length)
+                    _buildMachineImage(
+                      imagePath: filteredMachines[i + 1]["image"],
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              filteredMachines[i + 1]["screen"](widget.username),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              _buildMachineTile(
-                icon: Icons.scale_sharp,
-                title: "B-Scale",
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => BScaleScreen(username: widget.username)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildMachineTile(
-                icon: Icons.lock,
-                title: "D-LOCK",
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => DScaleScreen(username: widget.username)),
-                ),
-              ),
-              _buildMachineTile(
-                icon: Icons.scale,
-                title: "C-Scale",
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => Homev3Screen(username: widget.username)),
-                ),
-              ),
-            ],
-          ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildMachineTile({
-    required IconData icon,
-    required String title,
+
+  Widget _buildMachineImage({
+    required String imagePath,
     required VoidCallback onTap,
-    String? badge,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Stack(
-        children: [
-          Container(
-            width: 150,
-            height: 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[200],
-              boxShadow: [
-                BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 30, color: Colors.blue),
-                const SizedBox(width: 8),
-                Text(title, style: const TextStyle(fontSize: 16)),
-              ],
-            ),
-          ),
-          if (badge != null)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: CircleAvatar(
-                radius: 10,
-                backgroundColor: Colors.red,
-                child: Text(
-                  badge,
-                  style: const TextStyle(fontSize: 12, color: Colors.white),
-                ),
-              ),
-            ),
-        ],
+      child: Container(
+        child: Image.asset(
+          imagePath,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }
+
+
+  final List<Map<String, dynamic>> _machines = [
+    {
+      "keyword": "a-vim, avim",
+      "image": "assets/icon/MachineType.png",
+      "screen": (String username) => Homev3Screen(username: username),
+    },
+    {
+      "keyword": "b-scale, bscale",
+      "image": "assets/icon/MachineTypeBscale.png",
+      "screen": (String username) => BScaleScreen(username: username),
+    },
+    {
+      "keyword": "d-lock, dlock",
+      "image": "assets/icon/MachineTypeDlock.png",
+      "screen": (String username) => DScaleScreen(username: username),
+    },
+    {
+      "keyword": "c-scale, cscale",
+      "image": "assets/icon/MachineTypeCscale.png",
+      "screen": (String username) => Homev3Screen(username: username),
+    },
+  ];
 
   Widget _buildFooter() {
     return Container(

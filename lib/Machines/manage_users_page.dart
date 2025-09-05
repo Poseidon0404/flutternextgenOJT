@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'main.dart'; // for isAdmin()
+import '../main.dart'; // for isAdmin()
 
 class ManageUsersPage extends StatefulWidget {
   final String username;
@@ -199,7 +199,6 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
   // HEADER
   PreferredSizeWidget _buildHeader() {
     return AppBar(
-      automaticallyImplyLeading: false,
       backgroundColor: const Color(0xFFc40000),
       title: Row(
         children: [
@@ -430,7 +429,8 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],

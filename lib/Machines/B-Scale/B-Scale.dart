@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:login_v3_nextgen/Machines/A-VIM/virtualmachine/Homev3.dart';
+import 'package:login_v3_nextgen/Machines/machines.dart';
 import 'package:login_v3_nextgen/main.dart';
 import 'package:login_v3_nextgen/Machines/B-Scale/TAKE&RETURN.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'INVENTORY.dart';
 
 class BScaleScreen extends StatefulWidget {
   final String username;
@@ -459,7 +461,7 @@ class _BScaleScreenState extends State<BScaleScreen> {
           onSelected: (value) async {
             switch (value) {
               case 'home':
-                Navigator.push(context, MaterialPageRoute(builder: (_) => Homev3Screen(username: widget.username)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => MachineScreen(username: widget.username)));
                 break;
               case 'force_sync':
                 _showSyncDialog();
@@ -563,7 +565,7 @@ class _BScaleScreenState extends State<BScaleScreen> {
         children: [
           Expanded(flex: 5, child: _buildStoreroomList()),
           SizedBox(width: 25),
-          Expanded(flex: 9, child: _buildActionsPanel()),
+          Expanded(flex: 9, child: _buildActionGrid()),
         ],
       ),
     );
@@ -600,69 +602,130 @@ class _BScaleScreenState extends State<BScaleScreen> {
     );
   }
 
-  Widget _buildActionsPanel() {
-    final List<Map<String, dynamic>> actions = [
-      {'label': 'TAKE/RETURN', 'icon': Icons.download, 'onTap': () =>
-        Navigator.push(context, MaterialPageRoute(builder: (context) => BScaleTakeReturnScreen(username: widget.username)))},
-      {'label': 'INVENTORY CHECK', 'icon': Icons.upload, 'onTap': () => print('Return action')},
-      {'label': 'STOCK', 'icon': Icons.inventory, 'onTap': () => print('Inventory action')},
-      {'label': 'LOAD', 'icon': Icons.store, 'onTap': () => print('Stock action')},
-      {'label': 'UNLOAD', 'icon': Icons.shopping_cart, 'onTap': () => print('Order action')},
-      {'label': 'RECLAIM', 'icon': Icons.restore, 'onTap': () => print('Reclaim action')},
-      {'label': 'SETTINGS', 'icon': Icons.cloud_upload, 'onTap': () => print('Load action')},
-      {'label': 'UTILITIES', 'icon': Icons.cloud_download, 'onTap': () => print('Unload action')},
-    ];
+    Widget _buildActionGrid() {
+      final List<Map<String, dynamic>> actions = [
+        {
+          'label': 'TAKE/RETURN',
+          'image': 'assets/logos/take.png',
+          'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => BScaleTakeReturnScreen(username: widget.username)))
+        },
+        {
+          'label': 'INVENTORY',
+          'image': 'assets/logos/inventory.png',
+          'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (context) => BScaleInventoryScreen(username: widget.username)))
+        },
+        {
+          'label': 'STOCK',
+          'image': 'assets/logos/stock.png',
+          'onTap': () => print('Inventory action')
+        },
+        {
+          'label': 'LOAD',
+          'image': 'assets/logos/load.png',
+          'onTap': () => print('Stock action')
+        },
+        {
+          'label': 'UNLOAD',
+          'image': 'assets/logos/Vector.png',
+          'onTap': () => print('Order action')
+        },
+        {
+          'label': 'RECLAIM',
+          'image': 'assets/logos/reclaim.png',
+          'onTap': () => print('Reclaim action')
+        },
+        {
+          'label': 'SETTINGS',
+          'image': 'assets/logos/config.png',
+          'onTap': () => print('Load action')
+        },
+        {
+          'label': 'UTILITIES',
+          'image': 'assets/logos/Vector.png', //no logo yet
+          'onTap': () => print('Unload action')
+        },
+      ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('', style: TextStyle(fontSize: 22, color: Colors.white)),
-        SizedBox(height: 20),
-        Expanded(
-          child: GridView.builder(
-            padding: EdgeInsets.zero,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 20,
-              childAspectRatio: 1,
-            ),
-            itemCount: actions.length,
-            itemBuilder: (context, index) {
-              final action = actions[index];
-              return InkWell(
-                onTap: action['onTap'],
+      return GridView.builder(
+        padding: EdgeInsets.zero,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
+          childAspectRatio: 1,
+        ),
+        itemCount: actions.length,
+        itemBuilder: (context, index) {
+          final action = actions[index];
+          return InkWell(
+            onTap: action['onTap'],
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.red,
                 borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: EdgeInsets.all(8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: Icon(action['icon'], size: 32, color: Colors.white),
-                        ),
+              ),
+              padding: EdgeInsets.all(8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Image.asset(
+                        action['image'],
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.contain,
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        action['label'],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
+                  SizedBox(height: 8),
+                  Text(
+                    action['label'],
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    Widget _buildFooter() {
+      return Container(
+        height: 30,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFa50000), Color(0xFFc40000)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
         ),
-      ],
-    );
-  }
+        child: Row(
+          children: [
+            SizedBox(width: 10),
+            Image.asset('assets/images/logobot.png', height: 20),
+            SizedBox(width: 10),
+            Text(
+              appVersion,
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+            Spacer(),
+            Text(
+              getUsaGmtMinus4DateTime(),
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+            SizedBox(width: 10),
+          ],
+        ),
+      );
+    }
 
   Widget _buildBottomBar() {
     return Container(

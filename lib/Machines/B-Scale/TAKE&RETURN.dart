@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:login_v3_nextgen/Machines/A-VIM/virtualmachine/Homev3.dart';
+import 'package:login_v3_nextgen/Machines/machines.dart';
 import 'package:login_v3_nextgen/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -464,7 +464,7 @@ class _BScaleTakeReturnScreenState extends State<BScaleTakeReturnScreen> {
           onSelected: (value) async {
             switch (value) {
               case 'home':
-                Navigator.push(context, MaterialPageRoute(builder: (_) => Homev3Screen(username: widget.username)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => MachineScreen(username: widget.username)));
                 break;
               case 'force_sync':
                 _showSyncDialog();

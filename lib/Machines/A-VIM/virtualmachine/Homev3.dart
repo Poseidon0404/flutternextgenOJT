@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:login_v3_nextgen/Machines/A-VIM/virtualmachine/storeroom1.dart';
 import 'package:login_v3_nextgen/Machines/A-VIM/virtualmachine/storeroom3.dart';
 import 'package:intl/intl.dart';
+import 'package:login_v3_nextgen/Machines/machines.dart';
 import 'package:login_v3_nextgen/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -463,7 +464,7 @@ class _Homev3ScreenState extends State<Homev3Screen> {
           onSelected: (value) async {
             switch (value) {
               case 'home':
-                Navigator.push(context, MaterialPageRoute(builder: (_) => Homev3Screen(username: widget.username)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => MachineScreen(username: widget.username)));
                 break;
               case 'force_sync':
                 _showSyncDialog();
@@ -599,7 +600,7 @@ class _Homev3ScreenState extends State<Homev3Screen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Storeroom', style: TextStyle(fontSize: 20, color: Colors.white)),
+        Text('SELECT STOREROOM', style: TextStyle(fontSize: 20, color: Colors.white)),
         SizedBox(height: 20),
         Expanded(
           child: ListView.builder(
@@ -633,7 +634,7 @@ class _Homev3ScreenState extends State<Homev3Screen> {
                     padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
                   ),
                   child: Text(
-                    'Storeroom ${index + 1}',
+                    'STOREROOM ${index + 1}',
                     style: GoogleFonts.notoSans(
                       fontSize: 10,
                       color: Colors.white,
@@ -737,7 +738,8 @@ class _Homev3ScreenState extends State<Homev3Screen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],

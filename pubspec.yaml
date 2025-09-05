@@ -42,6 +42,8 @@ dependencies:
   firebase_core: ^4.0.0
   firebase_messaging: ^16.0.0
   awesome_notifications: ^0.10.1
+  local_auth: ^2.1.7
+
 
 dev_dependencies:
   flutter_test:
@@ -86,6 +88,13 @@ flutter:
     - assets/logos/config.png
     - assets/logos/Vector.png
     - assets/logos/reclaim.png
+    - assets/icon/vim.png
+    - assets/icon/scale.png
+    - assets/icon/dlock.png
+    - assets/icon/MachineType.png
+    - assets/icon/MachineTypeCscale.png
+    - assets/icon/MachineTypeBscale.png
+    - assets/icon/MachineTypeDlock.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -3,61 +3,62 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:login_v3_nextgen/Machines/machines.dart';
 import 'package:login_v3_nextgen/main.dart';
+import 'package:login_v3_nextgen/services/auth_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class IssueDispenseScreen extends StatefulWidget {
+class BScaleInventoryScreen extends StatefulWidget {
   final String username;
 
-  const IssueDispenseScreen({Key? key, required this.username}) : super(key: key);
+  const BScaleInventoryScreen({Key? key, required this.username})
+      : super(key: key);
 
   @override
-  _IssueDispenseScreenState createState() => _IssueDispenseScreenState();
+  _BScaleInventoryScreenState createState() => _BScaleInventoryScreenState();
 }
 
-class _IssueDispenseScreenState extends State<IssueDispenseScreen> {
+class _BScaleInventoryScreenState extends State<BScaleInventoryScreen> {
+  final AuthService _authService = AuthService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  String getUsaGmtMinus4DateTime() {
-    final nowUtc = DateTime.now().toUtc();
-    final gmtMinus4 = nowUtc.subtract(Duration(hours: 4));
-    return DateFormat('yyyy/MM/dd hh:mm a').format(gmtMinus4);
-  }
-
   String appVersion = 'v.4.1.78.6';
 
+  // Lazy loading config
   final int itemsPerPage = 20;
   int currentPage = 1;
   bool isLoadingMore = false;
 
-  final List<Map<String, String>> products = List.generate(99, (index) {
-    final number = (index + 1).toString().padLeft(3, '0');
-    return {
-      'code': 'ap-01-$number',
-      'name': 'Automation_prod-$number',
-      'location': 'Prod-Loc-A-A${(index + 1)}2001',
-      'qty': '99'
-    };
-  });
+  List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> _products = [];
+  List<Map<String, dynamic>> _locations = [
+    {"name": "Location_A", "code": "LOC-01", "capacity": 99999, "overallQty": 88888},
+    {"name": "Location_B", "code": "LOC-02", "capacity": 99999, "overallQty": 77777},
+  ];
 
-  List<Map<String, String>> filteredProducts = [];
-  List<Map<String, String>> visibleProducts = [];
+  List<Map<String, dynamic>> _visibleProducts = [];
+  List<Map<String, dynamic>> _visibleCategories = [];
+  List<Map<String, dynamic>> _visibleLocations = [];
+
+  bool _loading = true;
+  int _currentTab = 0; // 0 = Products, 1 = Categories, 2 = Locations
+
+  String getUsaGmtMinus4DateTime() {
+    final nowUtc = DateTime.now().toUtc();
+    final gmtMinus4 = nowUtc.subtract(const Duration(hours: 4));
+    return DateFormat('yyyy/MM/dd hh:mm a').format(gmtMinus4);
+  }
 
   Future<void> _loadVersion() async {
     final prefs = await SharedPreferences.getInstance();
     final storedVersion = prefs.getString('app_version');
-
-    setState(() {
-      appVersion = storedVersion ?? appVersion;
-    });
+    setState(() => appVersion = storedVersion ?? appVersion);
   }
 
   @override
   void initState() {
     super.initState();
+    _loadData();
     _loadVersion();
-    filteredProducts = products;
-    _loadInitialData();
     _searchController.addListener(_onSearchChanged);
 
     _scrollController.addListener(() {
@@ -69,25 +70,43 @@ class _IssueDispenseScreenState extends State<IssueDispenseScreen> {
     });
   }
 
-  void _loadInitialData() {
-    visibleProducts = filteredProducts.take(itemsPerPage).toList();
-    setState(() {});
+  Future<void> _loadData() async {
+    setState(() => _loading = true);
+    final categories = await _authService.getCategories();
+    final products = await _authService.getProducts();
+    setState(() {
+      _categories = categories;
+      _products = products;
+      _resetVisibleData();
+      _loading = false;
+    });
+  }
+
+  void _resetVisibleData() {
+    currentPage = 1;
+    _visibleProducts = _products.take(itemsPerPage).toList();
+    _visibleCategories = _categories.take(itemsPerPage).toList();
+    _visibleLocations = _locations.take(itemsPerPage).toList();
   }
 
   void _loadMoreData() async {
-    if (visibleProducts.length >= filteredProducts.length) return;
+    if (isLoadingMore) return;
 
     setState(() => isLoadingMore = true);
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    await Future.delayed(const Duration(milliseconds: 500)); // simulate delay
+    if (_currentTab == 0 && _visibleProducts.length < _products.length) {
+      final nextItems = _products.skip(currentPage * itemsPerPage).take(itemsPerPage).toList();
+      _visibleProducts.addAll(nextItems);
+    } else if (_currentTab == 1 && _visibleCategories.length < _categories.length) {
+      final nextItems = _categories.skip(currentPage * itemsPerPage).take(itemsPerPage).toList();
+      _visibleCategories.addAll(nextItems);
+    } else if (_currentTab == 2 && _visibleLocations.length < _locations.length) {
+      final nextItems = _locations.skip(currentPage * itemsPerPage).take(itemsPerPage).toList();
+      _visibleLocations.addAll(nextItems);
+    }
 
-    final nextItems = filteredProducts
-        .skip(currentPage * itemsPerPage)
-        .take(itemsPerPage)
-        .toList();
-    visibleProducts.addAll(nextItems);
     currentPage++;
-
     setState(() => isLoadingMore = false);
   }
 
@@ -98,42 +117,375 @@ class _IssueDispenseScreenState extends State<IssueDispenseScreen> {
     super.dispose();
   }
 
-  String _getUsaGmtMinus4DateTime() {
-    final nowUtc = DateTime.now().toUtc();
-    final gmtMinus4 = nowUtc.subtract(const Duration(hours: 4));
-    return DateFormat('MM/dd/yyyy hh:mm a').format(gmtMinus4);
-  }
-
-  void _onSearchChanged() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      filteredProducts = products.where((product) {
-        final code = product['code']!.toLowerCase();
-        final name = product['name']!.toLowerCase();
-        final location = product['location']!.toLowerCase();
-        return code.contains(query) || name.contains(query) || location.contains(query);
-      }).toList();
-
-      currentPage = 1;
-      visibleProducts = filteredProducts.take(itemsPerPage).toList();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildHeader(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (_currentTab == 0) {
+            _createProductDialog();
+          } else if (_currentTab == 1) {
+            _createCategoryDialog();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
-          _IssueDispense(),
-          _buildStoreroomBar(),
-          _buildTabHeader(),
-          Expanded(child: _buildProductList()),
+          _buildSearchBar(),
+          _buildTabs(),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildList(),
+          ),
           _buildFooter(),
         ],
       ),
     );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Search",
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, minimumSize: const Size(80, 40)),
+            onPressed: _onSearchChanged,
+            child: const Text("SEARCH"),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, minimumSize: const Size(80, 40)),
+            onPressed: () {
+              _searchController.clear();
+              _loadData();
+            },
+            child: const Text("CLEAR"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabs() {
+    return Container(
+      color: Colors.grey.shade100,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Row(
+        children: [
+          _buildTab("PRODUCTS (${_products.length})", 0),
+          const SizedBox(width: 10),
+          _buildTab("CATEGORIES (${_categories.length})", 1),
+          const SizedBox(width: 10),
+          _buildTab("LOCATIONS (${_locations.length})", 2),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(String text, int tabIndex) {
+    final bool active = _currentTab == tabIndex;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          _currentTab = tabIndex;
+          _resetVisibleData();
+        }),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: active ? Colors.blue.shade600 : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: active ? Colors.white : Colors.grey,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    List<Map<String, dynamic>> visibleData;
+    if (_currentTab == 0) {
+      visibleData = _visibleProducts;
+    } else if (_currentTab == 1) {
+      visibleData = _visibleCategories;
+    } else {
+      visibleData = _visibleLocations;
+    }
+
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: visibleData.length + (isLoadingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= visibleData.length) {
+          return const Padding(
+            padding: EdgeInsets.all(10),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final item = visibleData[index];
+
+        if (_currentTab == 0) {
+          return ListTile(
+            title: Text(item["name"] ?? "", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            subtitle: Text(item["description"] ?? ""),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _editProductDialog(item)),
+                IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteProduct(item["id"])),
+              ],
+            ),
+          );
+        } else if (_currentTab == 1) {
+          return ListTile(
+            title: Text(item["name"] ?? "", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _editCategoryDialog(item)),
+                IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteCategory(item["id"])),
+              ],
+            ),
+          );
+        } else {
+          return ListTile(
+            title: Text(item["name"] ?? "", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            subtitle: Text(item["code"] ?? ""),
+            trailing: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text("Cap: ${item["capacity"]}", style: const TextStyle(fontSize: 12)),
+                Text("Qty: ${item["overallQty"]}", style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Future<void> _createCategoryDialog() async {
+    final controller = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Create Category"),
+        content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(labelText: "Name")),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              await _authService.createCategory("text", name: controller.text);
+              Navigator.pop(context);
+              _loadData();
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editCategoryDialog(Map<String, dynamic> category) async {
+    final controller = TextEditingController(text: category["name"]);
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Category"),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: "Name"),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              await _authService.updateCategory(
+                category["id"],
+                name: controller.text,
+              );
+              Navigator.pop(context);
+              _loadData();
+            },
+            child: const Text("Update"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteCategory(int id) async {
+    await _authService.deleteCategory(id);
+    _loadData();
+  }
+
+  Future<void> _createProductDialog() async {
+    final nameController = TextEditingController();
+    final descController = TextEditingController();
+    int? selectedCategoryId =
+    _categories.isNotEmpty ? _categories.first["id"] : null;
+    bool status = true;
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Create Product"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: "Name")),
+              TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(labelText: "Description")),
+              DropdownButtonFormField<int>(
+                value: selectedCategoryId,
+                items: _categories.map((cat) {
+                  return DropdownMenuItem<int>(
+                    value: cat["id"],
+                    child: Text(cat["name"]),
+                  );
+                }).toList(),
+                onChanged: (val) => selectedCategoryId = val,
+                decoration: const InputDecoration(labelText: "Category"),
+              ),
+              SwitchListTile(
+                value: status,
+                onChanged: (val) => status = val,
+                title: const Text("Status"),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              if (selectedCategoryId != null) {
+                await _authService.createProduct(
+                  name: nameController.text,
+                  description: descController.text,
+                  status: status,
+                  categoryId: selectedCategoryId!,
+                );
+              }
+              Navigator.pop(context);
+              _loadData();
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editProductDialog(Map<String, dynamic> product) async {
+    final nameController = TextEditingController(text: product["name"]);
+    final descController =
+    TextEditingController(text: product["description"]);
+    int? selectedCategoryId = product["categoryId"];
+    bool status = product["status"] ?? true;
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Product"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: "Name")),
+              TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(labelText: "Description")),
+              DropdownButtonFormField<int>(
+                value: selectedCategoryId,
+                items: _categories.map((cat) {
+                  return DropdownMenuItem<int>(
+                    value: cat["id"],
+                    child: Text(cat["name"]),
+                  );
+                }).toList(),
+                onChanged: (val) => selectedCategoryId = val,
+                decoration: const InputDecoration(labelText: "Category"),
+              ),
+              SwitchListTile(
+                value: status,
+                onChanged: (val) => status = val,
+                title: const Text("Status"),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              if (selectedCategoryId != null) {
+                await _authService.updateProduct(
+                  product["id"],
+                  name: nameController.text,
+                  description: descController.text,
+                  status: status,
+                  categoryId: selectedCategoryId!,
+                );
+              }
+              Navigator.pop(context);
+              _loadData();
+            },
+            child: const Text("Update"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteProduct(int id) async {
+    await _authService.deleteProduct(id);
+    _loadData();
   }
 
   PreferredSizeWidget _buildHeader() {
@@ -259,182 +611,6 @@ class _IssueDispenseScreenState extends State<IssueDispenseScreen> {
     );
   }
 
-  Widget _IssueDispense() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      color: Colors.black,
-      child: const Row(
-        children: [
-          Text('ISSUE / DISPENSE', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
-          Spacer(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStoreroomBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      color: Colors.black87,
-      child: Row(
-        children: [
-          const Icon(Icons.grid_view_rounded, color: Colors.white),
-          const SizedBox(width: 10),
-          const Text('STOREROOM 003', style: TextStyle(color: Colors.white)),
-          const Spacer(),
-          Container(
-            width: 180,
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.search, size: 20, color: Colors.grey),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration.collapsed(hintText: 'Search...'),
-                  ),
-                ),
-                const Icon(Icons.qr_code, size: 20, color: Colors.grey),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabHeader() {
-    return Container(
-      height: 50,
-      color: const Color(0xFF0f6cbf),
-      child: Row(
-        children: [
-          Expanded(
-            child: Center(
-              child: Text('PRODUCTS', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text('TOTAL ${filteredProducts.length}', style: const TextStyle(color: Colors.black)),
-          ),
-          Container(width: 1, color: Colors.white54),
-          Expanded(
-            child: Center(
-              child: Text('LOCATION', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text('TOTAL ${filteredProducts.length}', style: const TextStyle(color: Colors.black)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProductList() {
-    return Expanded(
-      child: ListView.builder(
-        controller: _scrollController,
-        itemCount: visibleProducts.length + (isLoadingMore ? 1 : 0),
-        itemBuilder: (_, index) {
-          if (index >= visibleProducts.length) {
-            return const Padding(
-              padding: EdgeInsets.all(10.0),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          final product = visibleProducts[index];
-          return Container(
-            height: 150,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.blue.shade300,
-                        child: const Text('AP', style: TextStyle(color: Colors.white, fontSize: 12)),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(product['code']!, style: const TextStyle(fontSize: 12, color: Colors.black87)),
-                            Text(product['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            Text('Product for Mobile', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Capacity', style: TextStyle(fontSize: 12, color: Colors.black)),
-                    _buildCapacityBox('999'),
-                    const SizedBox(height: 8),
-                    const Text('Overall Qty', style: TextStyle(fontSize: 12)),
-                    _buildOverallQtyBox('999'),
-                  ],
-                ),
-                VerticalDivider(width: 20, thickness: 1, color: Colors.grey.shade300),
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('1113', style: TextStyle(fontSize: 12)),
-                        Text(product['location']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        const Text('Jprod113', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Quantity', style: TextStyle(fontSize: 12)),
-                    _buildQtyBox(product['qty']!),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildFooter() {
     return Container(
       height: 30,
@@ -465,40 +641,28 @@ class _IssueDispenseScreenState extends State<IssueDispenseScreen> {
     );
   }
 
-  Widget _buildQtyBox(String qty) {
-    return Container(
-      margin: const EdgeInsets.only(top: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.green.shade400,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(qty, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildOverallQtyBox(String qty) {
-    return Container(
-      margin: const EdgeInsets.only(top: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.green.shade400,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(qty, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildCapacityBox(String qty) {
-    return Container(
-      margin: const EdgeInsets.only(top: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(qty, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-    );
+  void _onSearchChanged() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (_currentTab == 0) {
+        _products = _products.where((prod) {
+          final name = prod['name'].toString().toLowerCase();
+          final desc = (prod['description'] ?? "").toString().toLowerCase();
+          return name.contains(query) || desc.contains(query);
+        }).toList();
+      } else if (_currentTab == 1) {
+        _categories = _categories.where((cat) {
+          final name = cat['name'].toString().toLowerCase();
+          return name.contains(query);
+        }).toList();
+      } else {
+        _locations = _locations.where((loc) {
+          final name = loc['name'].toString().toLowerCase();
+          final code = loc['code'].toString().toLowerCase();
+          return name.contains(query) || code.contains(query);
+        }).toList();
+      }
+    });
   }
 
   void _showSyncDialog() async {
